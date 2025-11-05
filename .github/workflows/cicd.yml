@@ -3,25 +3,21 @@ name: CI Pipeline - Build and Test
 
 # 2. Tell the robot WHEN to wake up
 on:
-  # Wake up on a push to the 'develop' branch
   push:
     branches:
       - develop
-  # ALSO wake up when a Pull Request is made TO 'develop'
   pull_request:
     branches:
       - develop
 
 # 3. Tell the robot WHAT TO DO
 jobs:
-  # This is the first job, we'll call it "build-and-test"
+  # This is the "build-and-test" job
   build-and-test:
-    name: Build & Test
+    name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest # Use a fresh Linux computer
 
-    # This is the "matrix" part of your project!
-    # It tells the robot to run this job 3 times,
-    # one for each Python version.
+    # This is your matrix build!
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11']
@@ -30,31 +26,29 @@ jobs:
       - name: 1. Check out code
         uses: actions/checkout@v4
 
-      - name: 2. Set up Python (version ${{ matrix.python-version }})
+      - name: 2. Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: 3. Install Pylint (our code-checker)
-        #
-        # run: python -m pip install --upgrade pip
-        # run: pip install pylint
-        
-      - name: 4. Run Pylint to test code
-        # We will also uncomment this line when you add code.
-        # This is your "test" stage!
-        #
-        # run: pylint --fail-under=8.0 your_python_code_folder/
-        run: echo "Pylint test step is ready." # A placeholder so the job passes
+      - name: 3. Install dependencies
+        # This step is no longer a placeholder
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint
+          # Also install all packages from your requirements.txt
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          
+      - name: 4. Run Pylint (This is your TEST stage)
+        # This step now checks your actual app.py file
+        # --fail-under=8.0 will make the build fail if your code score is bad
+        run: |
+          pylint --fail-under=8.0 app.py
 
-      - name: 5. A placeholder for a "Build" stage
-        # Later, this step could build a Docker image
-        run: echo "Build stage placeholder."
-
-  # This is a placeholder for your "Deploy" stage
+  # This "deploy" job is still just a placeholder for later
   deploy:
     name: Deploy
-    needs: build-and-test # This job WONT run unless "build-and-test" passes
+    needs: build-and-test # This WONT run unless "build-and-test" passes
     runs-on: ubuntu-latest
     
     steps:
