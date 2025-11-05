@@ -19,4 +19,3 @@ docker run -d -p 5000:5000 flask-hello
 ## volumes manggment for my simple app not needed but if needed need to add in docker compose 
 volumes:
       - ./my_host_folder:/my_container_folder_
-
