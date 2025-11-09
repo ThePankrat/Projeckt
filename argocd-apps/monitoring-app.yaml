@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    # This time, we point to a public Helm chart repo
+    repoURL: https://prometheus-community.github.io/helm-charts
+
+    # The name of the chart to deploy
+    chart: kube-prometheus-stack
+
+    # The version of the chart (it's good to lock this)
+    targetRevision: 58.1.1
+
+    helm:
+      # This chart is huge. We can disable parts we don't need
+      # to save resources on k3s.
+      values: |
+        alertmanager:
+          enabled: false  # Let's turn off alerting for now
+        grafana:
+          enabled: true   # We want Grafana
+        prometheus:
+          enabled: true   # We want Prometheus
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring  # Install it in a 'monitoring' namespace
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
