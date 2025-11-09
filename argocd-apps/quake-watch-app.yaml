@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: quake-watch      # The name of your app in ArgoCD
+  namespace: argocd     # ArgoCD must find this file
+spec:
+  project: default
+
+  source:
+    # This points to YOUR GitHub repo
+    repoURL: https://github.com/ThePankrat/Projeckt.git
+
+    # This tells ArgoCD to look for the Helm chart in this folder
+    path: my-app-chart
+
+    # This tells ArgoCD to follow your 'develop' branch
+    targetRevision: develop
+
+    # This section tells ArgoCD it's a Helm chart
+    helm:
+      # We can override values.yaml here!
+      # Let's change the replica count to 2.
+      valueFiles:
+        - values.yaml
+      values: |
+        replicaCount: 2
+
+  destination:
+    # This is where the app will be deployed IN Kubernetes
+    server: https://kubernetes.default.svc
+    namespace: quake-watch-prod  # Let's create a new namespace for our app
+
+  syncPolicy:
+    automated:
+      prune: true     # Automatically delete things that are no longer in Git
+      selfHeal: true  # Automatically fix things if they break
+
+    # This will create the 'quake-watch-prod' namespace for us
+    syncOptions:
+      - CreateNamespace=true
